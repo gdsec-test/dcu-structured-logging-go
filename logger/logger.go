@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"strings"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -14,27 +15,28 @@ var (
 // New will create a new default logger.
 func New(logLevel string, paths ...string) (l *zap.Logger, undo func(), err error) {
 	var zapLogLevel zap.AtomicLevel
-	if logLevel == "DEBUG" {
+	logLevel = strings.ToLower(logLevel)
+	if logLevel == "debug" {
 		zapLogLevel = zap.NewAtomicLevelAt(zapcore.DebugLevel)
-	} else if logLevel == "ERROR" {
+	} else if logLevel == "error" {
 		zapLogLevel = zap.NewAtomicLevelAt(zapcore.ErrorLevel)
-	} else if logLevel == "WARN" {
+	} else if logLevel == "warn" {
 		zapLogLevel = zap.NewAtomicLevelAt(zapcore.WarnLevel)
 	} else {
 		zapLogLevel = zap.NewAtomicLevelAt(zapcore.InfoLevel)
 	}
-	prod := zap.NewDevelopmentEncoderConfig()
-	prod.NameKey = "name"
-	prod.LevelKey = "logLevel"
-	prod.MessageKey = "message"
-	prod.TimeKey = "timestamp"
+	encoderConfig := zap.NewDevelopmentEncoderConfig()
+	encoderConfig.NameKey = "name"
+	encoderConfig.LevelKey = "logLevel"
+	encoderConfig.MessageKey = "message"
+	encoderConfig.TimeKey = "timestamp"
 	w, wClose, err := zap.Open(paths...)
 	if err != nil {
 		return nil, nil, err
 	}
 	l = zap.New(
 		zapcore.NewCore(
-			zapcore.NewJSONEncoder(prod),
+			zapcore.NewJSONEncoder(encoderConfig),
 			w,
 			zapLogLevel,
 		),
