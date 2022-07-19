@@ -12,7 +12,9 @@ import (
 
 // EventLogger is the data structure that holds the required fields for
 // event logging
-/*// A single event show below.
+
+/* The following was taken from https://github.secureserver.net/CTO/guidelines/blob/master/Standards-Best-Practices/Security/Application-Security-Logging-Standard.md
+// A single event show below.
 {
     "@timestamp": "2016-05-23T08:05:34.853Z",
     "labels": {"environment": "prod"},
