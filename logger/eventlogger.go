@@ -8,10 +8,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// LabelsStruct is a structure for the 'labels' json object in the event message
 type LabelsStruct struct {
 	Environment string `json:"environment"`
 }
 
+//EventStruct is a structure for the 'event' json object in the event message
 type EventStruct struct {
 	Kind      string `json:"kind"`
 	Category  string `json:"category"`
@@ -20,18 +22,19 @@ type EventStruct struct {
 	Action    string `json:"action"`
 }
 
+// UserStruct is a structure for the 'user' json object in the event message
 type UserStruct struct {
 	Name   string `json:"name"`
 	Domain string `json:"domain"`
-	Id     string `json:"id"`
+	ID     string `json:"id"`
 }
 
+// ServiceStruct is a structure for the 'service' json object in the event message
 type ServiceStruct struct {
 	Name string `json:"name"`
 }
 
-// EventLogger is the data structure that holds the required fields for
-// event logging
+// EventInfo is the data structure that holds the required fields for event logging
 type EventInfo struct {
 	Tags    []string      `json:"tags"`
 	Message string        `json:"message"`
@@ -55,7 +58,7 @@ func NewEventInfoLogger() *zap.Logger {
 }
 
 // LogEvent is a helper function thats used to log an event
-func LogEvent(l *zap.Logger, env string, serviceName string, message string, outcome string, action string, username string, domainName string, userId string) {
+func LogEvent(l *zap.Logger, env string, serviceName string, message string, outcome string, action string, username string, domainName string, userID string) {
 	tags := [...]string{"security", "appication"}
 
 	eventInfo := EventInfo{
@@ -71,7 +74,7 @@ func LogEvent(l *zap.Logger, env string, serviceName string, message string, out
 		User: UserStruct{
 			Name:   username,
 			Domain: domainName,
-			Id:     userId,
+			ID:     userID,
 		},
 		Service: ServiceStruct{
 			Name: serviceName,
