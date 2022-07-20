@@ -2,62 +2,42 @@ package logger
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"time"
+	//"fmt"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
+type LabelsStruct struct {
+	Environment string `json:"environment"`
+}
+
+type EventStruct struct {
+	Kind      string `json:"kind"`
+	Category  string `json:"category"`
+	EventType string `json:"type"`
+	Outcome   string `json:"outcome"`
+	Action    string `json:"action"`
+}
+
+type UserStruct struct {
+	Name   string `json:"name"`
+	Domain string `json:"domain"`
+	Id     string `json:"id"`
+}
+
+type ServiceStruct struct {
+	Name string `json:"name"`
+}
+
 // EventLogger is the data structure that holds the required fields for
 // event logging
-
-/* The following was taken from https://github.secureserver.net/CTO/guidelines/blob/master/Standards-Best-Practices/Security/Application-Security-Logging-Standard.md
-// A single event show below.
-{
-    "@timestamp": "2016-05-23T08:05:34.853Z",
-    "labels": {"environment": "prod"},
-    "tags": ["security", "application"],
-    "message": "User asomebody was created in domainfind application.",
-    "event": {
-      "kind": "event",
-      "category": "iam",
-      "type": ["creation", "creation"],
-      "outcome":"success",
-      "action": "user_create"
-    },
-    "user": {
-      "name": "asomebody",
-      "domain": "thenewdomain.com",
-      "id": "12345678910"
-    },
-    "service": {
-      "name": "domainfind"
-    }
-}*/
 type EventInfo struct {
-	timestamp		time				`json:"@timestamp"`
-	labels struct{
-		environment	string				`json:"environment"`
-	} `json:"labels"`
-	tags  			[]string			`json:"tags"`
-	message			string				`json:"message"`
-	event struct{
-		kind		string				`json:"kind"`
-		category	string				`json:"category"`
-		eventType	[]string			`json:"type"`
-		outcome		string				`json:"outcome"`
-		action		string				`json:"action"`
-	} `json:"event"`
-	user struct{
-		name		string				`json:"name"`
-		domain		string				`json:"domain"`
-		id			string				`json:"id"`
-	} `json:"user"`   
-	service struct{
-		name		string				`json:"name"`	
-	}`json:"service"`,
+	Tags    []string      `json:"tags"`
+	Message string        `json:"message"`
+	Event   EventStruct   `json:"event"`
+	User    UserStruct    `json:"user"`
+	Service ServiceStruct `json:"service"`
 }
 
 // NewEventInfoLogger returns a zap logger object with required config
@@ -66,29 +46,44 @@ func NewEventInfoLogger() *zap.Logger {
 		Encoding:    "json",
 		Level:       zap.NewAtomicLevelAt(zapcore.InfoLevel),
 		OutputPaths: []string{"stdout"},
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:    "@timestamp",
+			EncodeTime: zapcore.ISO8601TimeEncoder,
+		},
 	}.Build()
 	return logger
 }
 
 // LogEvent is a helper function thats used to log an event
 func LogEvent(l *zap.Logger, env string, serviceName string, message string, outcome string, action string, username string, domainName string, userId string) {
-	
+	tags := [...]string{"security", "appication"}
+
 	eventInfo := EventInfo{
-		timestamp:    			time.Now(),
-		labels:environment:     env,
-		tags:  					["security", "application"],
-		message:				message,
-		event:kind:				"event",
-		event:category:			"LKM TODO",
-		event:eventType:		"LKM TODO: figure out what to put and if this can be an array or just string",
-		event:outcome:			outcome,
-		event.action:			action,
-		user:name:				username,
-		user:domain:			domainName,
-		user:id:				userId,
-		service:name:			serviceName
+		Tags:    tags[:],
+		Message: message,
+		Event: EventStruct{
+			Kind:      "event",
+			Category:  "iam",
+			EventType: "change",
+			Outcome:   outcome,
+			Action:    action,
+		},
+		User: UserStruct{
+			Name:   username,
+			Domain: domainName,
+			Id:     userId,
+		},
+		Service: ServiceStruct{
+			Name: serviceName,
+		},
 	}
+
+	labelsData := LabelsStruct{
+		Environment: env,
+	}
+
 	jsonEventInfo, _ := json.Marshal(eventInfo)
-	// l.Info("", zap.Any("http-info", json.RawMessage(jsonHTTPInfo)))
-	l.Info(string(jsonEventInfo))
+	jsonLabels, _ := json.Marshal(labelsData)
+
+	l.Info("", zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("event-info", json.RawMessage(jsonEventInfo)))
 }
