@@ -12,13 +12,9 @@ type LabelsStruct struct {
 	Environment string `json:"environment"`
 }
 
-//EventStruct is a structure for the 'event' json object in the event message
-type EventStruct struct {
-	Kind      string `json:"kind"`
-	Category  string `json:"category"`
-	EventType string `json:"type"`
-	Outcome   string `json:"outcome"`
-	Action    string `json:"action"`
+// UserStruct is a structure for the 'user' json object in the event message
+type UserStruct struct {
+	CName string `json:"CName"`
 }
 
 // SourceStruct is a structure for the 'source' json object in the event message
@@ -48,17 +44,10 @@ func NewEventInfoLogger() *zap.Logger {
 }
 
 // LogEvent is a helper function thats used to log an event
-func LogEvent(l *zap.Logger, env string, serviceName string, message string, outcome string, action string, sourceIP string, extras []byte) {
-	tags := [...]string{"security", "appication"}
+func LogEvent(l *zap.Logger, env string, serviceName string, message string, sourceIP string, cName string, eventData []byte) {
+	tags := [...]string{"security", "application"}
 	labelsData := LabelsStruct{
 		Environment: env,
-	}
-	eventData := EventStruct{
-		Kind:      "event",
-		Category:  "iam",
-		EventType: "change",
-		Outcome:   outcome,
-		Action:    action,
 	}
 	sourceData := SourceStruct{
 		IP: sourceIP,
@@ -66,11 +55,14 @@ func LogEvent(l *zap.Logger, env string, serviceName string, message string, out
 	serviceData := ServiceStruct{
 		Name: serviceName,
 	}
+	userData := UserStruct{
+		CName: cName,
+	}
 
 	jsonLabels, _ := json.Marshal(labelsData)
-	jsonEventData, _ := json.Marshal(eventData)
 	jsonSourceData, _ := json.Marshal(sourceData)
 	jsonServiceData, _ := json.Marshal(serviceData)
+	jsonUserData, _ := json.Marshal(userData)
 
-	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("tags", tags[:]), zap.Any("event", json.RawMessage(jsonEventData)), zap.Any("source", json.RawMessage(jsonSourceData)), zap.Any("service", json.RawMessage(jsonServiceData)), zap.Any("extra", json.RawMessage(extras)))
+	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("tags", tags[:]), zap.Any("event", json.RawMessage(eventData)), zap.Any("source", json.RawMessage(jsonSourceData)), zap.Any("service", json.RawMessage(jsonServiceData)), zap.Any("user", json.RawMessage(jsonUserData)))
 }
