@@ -21,6 +21,7 @@ type EventStruct struct {
 	Action    string `json:"action"`
 }
 
+// SourceStruct is a structure for the 'source' json object in the event message
 type SourceStruct struct {
 	IP string `json:"ip"`
 }
