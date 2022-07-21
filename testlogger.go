@@ -1,4 +1,4 @@
-package logger
+package main
 
 import (
 	"encoding/json"
@@ -6,6 +6,21 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+func main() {
+	extraData := ExtraDataStruct{
+		CName:     "testCName",
+		ShopperID: "testShopperID",
+	}
+	jsonExtra, _ := json.Marshal(extraData)
+
+	LogEvent(NewEventInfoLogger(), "prod", "testServiceName", "testMessage", "testOutcome", "testAction", "testIP", jsonExtra)
+}
+
+type ExtraDataStruct struct {
+	CName     string `json:"cname"`
+	ShopperID string `json:"shopperID"`
+}
 
 // LabelsStruct is a structure for the 'labels' json object in the event message
 type LabelsStruct struct {
