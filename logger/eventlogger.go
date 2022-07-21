@@ -31,14 +31,6 @@ type ServiceStruct struct {
 	Name string `json:"name"`
 }
 
-// EventInfo is the data structure that holds the required fields for event logging
-type EventInfo struct {
-	Tags    []string      `json:"tags"`
-	Event   EventStruct   `json:"event"`
-	Source  SourceStruct  `json:"source"`
-	Service ServiceStruct `json:"service"`
-}
-
 // NewEventInfoLogger returns a zap logger object with required config
 func NewEventInfoLogger() *zap.Logger {
 	logger, _ := zap.Config{
@@ -58,30 +50,27 @@ func NewEventInfoLogger() *zap.Logger {
 // LogEvent is a helper function thats used to log an event
 func LogEvent(l *zap.Logger, env string, serviceName string, message string, outcome string, action string, sourceIP string, extras []byte) {
 	tags := [...]string{"security", "appication"}
-
-	eventInfo := EventInfo{
-		Tags: tags[:],
-		Event: EventStruct{
-			Kind:      "event",
-			Category:  "iam",
-			EventType: "change",
-			Outcome:   outcome,
-			Action:    action,
-		},
-		Source: SourceStruct{
-			IP: sourceIP,
-		},
-		Service: ServiceStruct{
-			Name: serviceName,
-		},
-	}
-
 	labelsData := LabelsStruct{
 		Environment: env,
 	}
+	eventData := EventStruct{
+		Kind:      "event",
+		Category:  "iam",
+		EventType: "change",
+		Outcome:   outcome,
+		Action:    action,
+	}
+	sourceData := SourceStruct{
+		IP: sourceIP,
+	}
+	serviceData := ServiceStruct{
+		Name: serviceName,
+	}
 
-	jsonEventInfo, _ := json.Marshal(eventInfo)
 	jsonLabels, _ := json.Marshal(labelsData)
+	jsonEventData, _ := json.Marshal(eventData)
+	jsonSourceData, _ := json.Marshal(sourceData)
+	jsonServiceData, _ := json.Marshal(serviceData)
 
-	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("event-info", json.RawMessage(jsonEventInfo)), zap.Any("extra", json.RawMessage(extras)))
+	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("tags", tags[:]), zap.Any("event", json.RawMessage(jsonEventData)), zap.Any("source", json.RawMessage(jsonSourceData)), zap.Any("service", json.RawMessage(jsonServiceData)), zap.Any("extra", json.RawMessage(extras)))
 }
