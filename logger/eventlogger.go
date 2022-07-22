@@ -12,11 +12,6 @@ type LabelsStruct struct {
 	Environment string `json:"environment"`
 }
 
-// UserStruct is a structure for the 'user' json object in the event message
-type UserStruct struct {
-	CName string `json:"CName"`
-}
-
 // SourceStruct is a structure for the 'source' json object in the event message
 type SourceStruct struct {
 	IP string `json:"ip"`
@@ -44,7 +39,7 @@ func NewEventInfoLogger() *zap.Logger {
 }
 
 // LogEvent is a helper function thats used to log an event
-func LogEvent(l *zap.Logger, env string, serviceName string, message string, sourceIP string, cName string, eventData []byte) {
+func LogEvent(l *zap.Logger, env string, serviceName string, message string, sourceIP string, userData interface{}, eventData interface{}) {
 	tags := [...]string{"security", "application"}
 	labelsData := LabelsStruct{
 		Environment: env,
@@ -55,14 +50,10 @@ func LogEvent(l *zap.Logger, env string, serviceName string, message string, sou
 	serviceData := ServiceStruct{
 		Name: serviceName,
 	}
-	userData := UserStruct{
-		CName: cName,
-	}
 
 	jsonLabels, _ := json.Marshal(labelsData)
 	jsonSourceData, _ := json.Marshal(sourceData)
 	jsonServiceData, _ := json.Marshal(serviceData)
-	jsonUserData, _ := json.Marshal(userData)
 
-	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("tags", tags[:]), zap.Any("event", json.RawMessage(eventData)), zap.Any("source", json.RawMessage(jsonSourceData)), zap.Any("service", json.RawMessage(jsonServiceData)), zap.Any("user", json.RawMessage(jsonUserData)))
+	l.Info(message, zap.Any("labels", json.RawMessage(jsonLabels)), zap.Any("tags", tags[:]), zap.Any("event", eventData), zap.Any("source", json.RawMessage(jsonSourceData)), zap.Any("service", json.RawMessage(jsonServiceData)), zap.Any("user", userData))
 }
